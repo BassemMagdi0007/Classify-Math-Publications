@@ -154,3 +154,171 @@ Given more time, these enhancements could further improve accuracy:
 
 ## Conclusion
 The solution demonstrates that mathematical notation alone contains sufficient information to reasonably predict research domains. This suggests that different fields have developed distinctive mathematical "dialects" that can be identified through machine learning techniques.
+
+
+Here’s a **revised, accurate workflow** based on your files and requirements, with corrections to the documentation:
+
+---
+
+### **Corrected Workflow for arXiv Math Publication Classifier**
+
+#### **1. Problem Clarification**
+- **Input**: `example-test-data.jsonl` (contains `id` and `formulas` for 2,000 papers).
+- **Ground Truth**: `example-test-results.json` (correct classifications for comparison).
+- **Goal**: Train a model on this data to predict categories (`cs`, `cond-mat`, etc.) from MathML formulas.
+
+#### **2. Key Corrections to Original Documentation**
+1. **Training Data Issue**:  
+   - `example-test-data.jsonl` **does not contain classifications** (only `id` and `formulas`).  
+   - You **cannot train a model** on this file alone.  
+   - *Solution*: Use `example-test-results.json` to create labeled training data by merging it with `example-test-data.jsonl`.
+
+2. **Revised File Structure**:
+   ```
+   .
+   ├── create_training_data.py   # New: Merges test data + results into labeled data
+   ├── classifier.py            # Your existing model code
+   ├── example-test-data.jsonl  # Provided test data (no labels)
+   ├── example-test-results.json # Provided correct labels
+   └── trained_model/           # Generated files
+       ├── model.keras
+       ├── vocab.pickle
+       └── label_encoder.pickle
+   ```
+
+---
+
+### **Step-by-Step Corrected Instructions**
+
+#### **Step 1: Create Labeled Training Data**
+Run this **once** to merge `example-test-data.jsonl` and `example-test-results.json`:
+```python
+# create_training_data.py
+import json
+
+# Load test data
+papers = []
+with open("example-test-data.jsonl", "r") as f:
+    papers = [json.loads(line) for line in f]
+
+# Load ground truth labels
+with open("example-test-results.json", "r") as f:
+    labels = json.load(f)
+
+# Merge into training data
+training_data = []
+for paper in papers:
+    paper_id = paper["id"]
+    training_data.append({
+        "id": paper_id,
+        "formulas": paper["formulas"],
+        "classification": labels[paper_id]
+    })
+
+# Save as new file
+with open("training_data.jsonl", "w") as f:
+    for item in training_data:
+        f.write(json.dumps(item) + "\n")
+```
+
+**Run it**:
+```bash
+python create_training_data.py
+```
+
+---
+
+#### **Step 2: Train the Model**
+Use the generated `training_data.jsonl` to train:
+```bash
+python classifier.py --train training_data.jsonl
+```
+This will save:
+- `trained_model/model.keras`  
+- `trained_model/vocab.pickle`  
+- `trained_model/label_encoder.pickle`
+
+---
+
+#### **Step 3: Evaluate on Test Data**
+Since you only have one dataset, evaluate on a **validation split** (already done in `classifier.py`).  
+To check performance against `example-test-results.json`:
+```bash
+python classifier.py --test example-test-data.jsonl --output my_predictions.json
+```
+
+Then compare:
+```python
+# evaluate_accuracy.py
+import json
+
+# Load ground truth
+with open("example-test-results.json", "r") as f:
+    truth = json.load(f)
+
+# Load predictions
+with open("my_predictions.json", "r") as f:
+    preds = json.load(f)
+
+# Calculate accuracy
+correct = 0
+for paper_id, true_label in truth.items():
+    if preds.get(paper_id) == true_label:
+        correct += 1
+
+accuracy = correct / len(truth)
+print(f"Accuracy: {accuracy:.2%}")
+```
+
+---
+
+#### **Step 4: Server Submission (Optional)**
+If submitting to the server:
+```bash
+python server_interaction.py
+```
+Ensure `get_classifications()` in `server_interaction.py` loads your trained model:
+```python
+def get_classifications(request):
+    model = keras.models.load_model("trained_model/model.keras")
+    with open("trained_model/vocab.pickle", "rb") as f:
+        vocab = pickle.load(f)
+    with open("trained_model/label_encoder.pickle", "rb") as f:
+        label_encoder = pickle.load(f)
+    # ... (rest of your prediction logic)
+```
+
+---
+
+### **Critical Notes**
+1. **Data Leak Warning**:  
+   - You’re training and testing on the **same data split** (not ideal).  
+   - For a real project, request a separate training set with labels.
+
+2. **Performance Expectation**:  
+   - With this setup, expect ~40-60% accuracy due to overlapping notation across fields.  
+   - The baseline (25%) is trivial (random guessing among 4+ classes).
+
+3. **Improvements**:  
+   - Use **k-fold cross-validation** if no separate test set exists.  
+   - Add **MathML structure features** (e.g., count of `<msub>` tags).  
+
+---
+
+### **Final Directory Structure**
+```
+.
+├── create_training_data.py     # Step 1: Merge data + labels
+├── classifier.py              # Your model code (unchanged)
+├── evaluate_accuracy.py       # Step 3: Compare predictions
+├── example-test-data.jsonl    # Provided (no labels)
+├── example-test-results.json  # Provided (ground truth)
+├── training_data.jsonl        # Generated in Step 1
+├── my_predictions.json        # Generated in Step 3
+└── trained_model/             # Generated in Step 2
+    ├── model.keras
+    ├── vocab.pickle
+    └── label_encoder.pickle
+```
+
+Let me know if you'd like me to generate any of the auxiliary scripts (e.g., `evaluate_accuracy.py`) in full!
