@@ -74,7 +74,7 @@ This will:
 #### 3) Generating Test Predictions
 
 ```bash
-python classifier.py --test example-data/example-test-data.jsonl
+python classifier.py --test path/to/example-test-data.jsonl
 ```
 
 This will:
@@ -88,6 +88,24 @@ python evaluate.py path/to/example-test-results.json path/to/predictions.json
 ```
 
 ### **Data Files:**
+#### 1) Training the Model
+```bash
+python classifier.py --train path/to/training-data.jsonl
+```
+This will:
+1. Train the neural network model on the training data
+3. Save the model, vocabulary, and label encoder to disk
+
+#### 2) Generating Test Predictions
+```bash
+python classifier.py --test path/to/test-data.jsonl
+```
+
+This will:
+1. Load the previously trained model and preprocessing objects
+2. Process the test data
+3. Generate and save the results in JSON format file `predictions.json`
+
 
 
 ### Used Libraries
