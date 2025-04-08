@@ -296,16 +296,6 @@ def main():
   ```
 - **Output**: Saves predictions to `predictions.json`.  
 
----
-
-## **Workflow Summary**
-1. **Training Phase**:  
-   - Processes raw JSONL → tokenized sequences → trains CNN classifier.  
-   - Persists model and vocabulary for deployment.  
-2. **Inference Phase**:  
-   - Loads saved artifacts.  
-   - Classifies new papers via `process_test_data()` or `get_classifications()`.  
-
 --- 
 
 
@@ -338,10 +328,6 @@ The implementation makes several thoughtful design choices to balance performanc
    - Maintains separate validation set for unbiased performance evaluation
    - Includes comprehensive logging of preprocessing statistics
    - Generates properly formatted output as specified in the assignment
-
-The solution demonstrates good software engineering practices while addressing the machine learning challenges of the classification task. The modular design allows for easy experimentation with different tokenization strategies or model architectures, and the comprehensive documentation ensures maintainability.
-
-
 
 #-------------------------------------------------------------------------------------------
 ## Dependencies
