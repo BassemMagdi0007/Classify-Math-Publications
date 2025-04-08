@@ -320,97 +320,76 @@ def main():
 
 ## Self-Evaluation and Design Decisions
 
-### Model Architecture
+During the training phase, the model was executed using the command:
 
-The neural network uses:
-- Embedding layer (128 dimensions)
-- Two 1D convolutional layers with 64 filters each
-- Global max pooling
-- Dense layers with dropout for regularization
-- Softmax output layer for multi-class classification
+```bash
+python classifier.py --train data/training-data.jsonl
+```
 
+<img width="709" alt="image" src="https://github.com/user-attachments/assets/3ddf12cf-37d3-4900-aacf-81a4de76a08f" />
 
-### Problem Overview
-The task requires classifying mathematical publications into research categories (e.g., 'cs', 'cond-mat', 'hep-ph') based solely on the MathML representations of the formulas they contain. Each paper contains 1-10 formulas, and the challenge is to extract meaningful patterns from these mathematical expressions that correlate with research domains.
+The dataset consisted of **20,000 papers**, with **7.6 million tokens** in total. After filtering out rare tokens (minimum frequency of 10), the vocabulary was reduced from 6,407 to **1,196 unique tokens**, achieving a **99.85% vocabulary coverage**. Tokens not covered (e.g., niche terms like `'mu'`, `'caf'`, and `‘𝗸𝗽𝗰’`) were mapped to `<UNK>`.
 
-### Approach
-My solution employs a neural network that learns to identify mathematical notation patterns specific to different research fields. The approach consists of four main components:
+**Model Configuration Highlights:**
+- Input vocabulary size: 1,196  
+- Number of research categories: 18  
+- Train/validation split: 16,000 / 4,000 samples  
+- Sequence padding/truncation length: 100  
+- Token embeddings: 128-dimensional  
+- Two `Conv1D` layers for local pattern detection  
+- Early stopping with patience = 3  
+- Dropout = 0.3 in embedding and dense layers
 
-#### 1. MathML Tokenization
-I developed a tokenization strategy that extracts both structural and content information from MathML:
-- XML tags (e.g., `<mi>`, `<mrow>`, `<msub>`) capture the mathematical structure
-- Text content within tags captures variable names, operators, and constants
-- Numbers are normalized to reduce vocabulary size and improve generalization
-- Special tokens handle padding and unknown elements
+ 
+<img width="900" alt="image" src="https://github.com/user-attachments/assets/4a4af77d-ccfe-4872-8cf1-c0ede84a794b" />
 
-This approach preserves both the notation style and content of mathematical expressions, which vary significantly across research domains. For example, theoretical physics papers might contain more integral expressions and specific variable notations than computer science papers.
+**Training Progress and Metrics:**
 
-#### 2. Feature Engineering
-The tokenized formulas are converted to fixed-length numerical sequences:
-- Built a vocabulary from tokens appearing at least 5 times in the training corpus
-- Mapped each token to a unique integer index
-- Limited sequences to 100 tokens (truncating longer sequences)
-- Padded shorter sequences with zeros
+| Epoch | Training Accuracy | Validation Accuracy | Validation Loss |
+|-------|-------------------|---------------------|------------------|
+| 1     | 32.3%             | 45.5%               | 1.7966           |
+| 5     | 60.0%             | 56.7%               | 1.4417           |
+| 10    | 67.3%             | 57.3%               | 1.4574           |
+| **11**| **68.6%**         | **58.0%**           | **1.4372**       |
+| 15    | 72.2%             | 56.4%               | 1.5733           |
 
-#### 3. Neural Network Architecture
-I designed a neural network with the following components:
-- Embedding layer: Transforms token indices into 128-dimensional dense vectors
-- Convolutional layers: Two Conv1D layers with 64 filters each, capture n-gram patterns in formulas
-- Global max pooling: Extracts the most important features from each filter
-- Dense layers: Transform the extracted features into category predictions
-- Dropout (0.3): Applied after embedding and before output to prevent overfitting
+> The best validation accuracy of **58.03%** was achieved at epoch 11, with a validation loss of 1.4372. This surpassed the baseline threshold of 25%, indicating the model successfully learned meaningful representations from MathML structures.
 
-This architecture effectively captures both local patterns (specific mathematical constructs) and their relationships within formulas, which is crucial for distinguishing between research domains.
+<img width="340" alt="image" src="https://github.com/user-attachments/assets/0bdf598a-aecc-4f86-b58b-09950449454b" />
 
-#### 4. Training and Optimization
-The model was trained with:
-- Sparse categorical cross-entropy loss
-- Adam optimizer
-- Early stopping based on validation accuracy
-- 80/20 train-validation split
+The trained model was saved to disk along with supporting artifacts:
+- `model.keras` (neural network weights and architecture)  
+- `vocab.pickle` (token-to-index dictionary)  
+- `label_encoder.pickle` (category label mapping)  
 
-### Results and Analysis
-The model achieved a validation accuracy of approximately 40%, significantly above the 25% required passing threshold. Analysis of the results revealed:
+---
 
-1. Certain mathematical notations strongly correlate with specific fields:
-   - Physics papers often use specific symbols and tensor notations
-   - CS papers tend to have more algorithmic and logical expressions
-   - Mathematics papers show particular theorem structures
+### **Testing and Prediction Generation**
 
-2. Challenges encountered:
-   - Similar notation can appear across different domains
-   - MathML parsing errors in some formulas
-   - Limited context from only having formula information
+To generate predictions on the test set, the following command was executed:
 
+```bash
+python classifier.py --test data/test-data.jsonl
+```
 
-The implementation makes several thoughtful design choices to balance performance, accuracy, and maintainability:
+<img width="1262" alt="image" src="https://github.com/user-attachments/assets/3eead180-86b3-4fc3-87a9-610b4036a059" />
 
-1. **Tokenization Strategy**:
-   - Normalizes numbers and operators to improve generalization
-   - Preserves XML structure through element tags
-   - Includes robust error handling for malformed MathML
+This process:
+- Loaded the pre-trained model and vocabulary
+- Processed **2,000 test samples**
+- Successfully tokenized and padded formulas into sequences
+- Saved predictions in the required JSON format as `predictions.json`
 
-2. **Vocabulary Construction**:
-   - Implements frequency thresholding (MIN_TOKEN_FREQ) to reduce dimensionality
-   - Tracks vocabulary coverage to ensure model can handle unseen data
-   - Uses special tokens (<UNK>, <PAD>) for out-of-vocabulary terms and sequence padding
+**Example Tokenized Sequence:**
+```
+[2, 3, 78, 5, 6, 2, 16, 5, 49, 3, 44, 16, ...]
+```
 
-3. **Neural Network Architecture**:
-   - Employs embedding layer to learn meaningful representations of mathematical tokens
-   - Uses 1D convolutional layers to capture local patterns in formula sequences
-   - Includes dropout layers for regularization to prevent overfitting
-   - Implements early stopping based on validation accuracy
+> This sequence represents structural and normalized tokens from a MathML snippet, encoded based on the trained vocabulary.
 
-4. **Performance Considerations**:
-   - Limits sequence length (MAX_SEQ_LENGTH) to balance memory usage and information retention
-   - Uses efficient batching (BATCH_SIZE) for gradient updates
-   - Provides model persistence to avoid retraining
+---
 
-5. **Validation and Testing**:
-   - Maintains separate validation set for unbiased performance evaluation
-   - Includes comprehensive logging of preprocessing statistics
-   - Generates properly formatted output as specified in the assignment
-
-
-
-
+### **Final Notes**
+The final validation accuracy of 58.0% demonstrates the model’s ability to classify mathematical publications based solely on formulaic notation with reasonable reliability.
+The results are reproducible and align with the assignment specifications.
+Future improvements could explore hybrid models and attention mechanisms to better capture semantic context and disambiguate cross-domain mathematical symbols.
