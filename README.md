@@ -46,7 +46,7 @@ The repository contains the following files:
 - `README.md`: This file
 
 ### How to Run the Code
-### **Example Files:**
+### **FIRST: Example Files:**
 
 #### 1) Create training data
 ```bash
@@ -87,7 +87,7 @@ This will:
 python evaluate.py path/to/example-test-results.json path/to/predictions.json
 ```
 
-### **Data Files:**
+### **THEN: Data Files:**
 #### 1) Training the Model
 ```bash
 python classifier.py --train path/to/training-data.jsonl
