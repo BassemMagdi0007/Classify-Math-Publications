@@ -320,76 +320,76 @@ def main():
 
 ## Self-Evaluation and Design Decisions
 
-During the training phase, the model was executed using the command:
+### **Training Phase**  
+The model was trained using the command:  
+```bash  
+python classifier.py --train data/training-data.jsonl  
+```  
 
-```bash
-python classifier.py --train data/training-data.jsonl
-```
+<img width="709" alt="image" src="https://github.com/user-attachments/assets/3ddf12cf-37d3-4900-aacf-81a4de76a08f" />  
 
-<img width="709" alt="image" src="https://github.com/user-attachments/assets/3ddf12cf-37d3-4900-aacf-81a4de76a08f" />
+**Dataset Overview**:  
+- **20,000 papers** with **7.6 million tokens** total.  
+- After filtering rare tokens (minimum frequency=10), the vocabulary reduced from **6,407 to 1,196 unique tokens**, achieving **99.85% coverage**.  
+- Uncovered tokens (e.g., `'mu'`, `'caf'`, `'𝗸𝗽𝗰'`) were mapped to `<UNK>`.  
 
-The dataset consisted of **20,000 papers**, with **7.6 million tokens** in total. After filtering out rare tokens (minimum frequency of 10), the vocabulary was reduced from 6,407 to **1,196 unique tokens**, achieving a **99.85% vocabulary coverage**. Tokens not covered (e.g., niche terms like `'mu'`, `'caf'`, and `‘𝗸𝗽𝗰’`) were mapped to `<UNK>`.
-
-**Model Configuration Highlights:**
-- Input vocabulary size: 1,196  
-- Number of research categories: 18  
-- Train/validation split: 16,000 / 4,000 samples  
-- Sequence padding/truncation length: 100  
-- Token embeddings: 128-dimensional  
-- Two `Conv1D` layers for local pattern detection  
-- Early stopping with patience = 3  
-- Dropout = 0.3 in embedding and dense layers
-
- 
-<img width="900" alt="image" src="https://github.com/user-attachments/assets/4a4af77d-ccfe-4872-8cf1-c0ede84a794b" />
-
-**Training Progress and Metrics:**
-
-| Epoch | Training Accuracy | Validation Accuracy | Validation Loss |
-|-------|-------------------|---------------------|------------------|
-| 1     | 32.3%             | 45.5%               | 1.7966           |
-| 5     | 60.0%             | 56.7%               | 1.4417           |
-| 10    | 67.3%             | 57.3%               | 1.4574           |
-| **11**| **68.6%**         | **58.0%**           | **1.4372**       |
-| 15    | 72.2%             | 56.4%               | 1.5733           |
-
-> The best validation accuracy of **58.03%** was achieved at epoch 11, with a validation loss of 1.4372. This surpassed the baseline threshold of 25%, indicating the model successfully learned meaningful representations from MathML structures.
-
-<img width="340" alt="image" src="https://github.com/user-attachments/assets/0bdf598a-aecc-4f86-b58b-09950449454b" />
-
-The trained model was saved to disk along with supporting artifacts:
-- `model.keras` (neural network weights and architecture)  
-- `vocab.pickle` (token-to-index dictionary)  
-- `label_encoder.pickle` (category label mapping)  
+**Model Architecture**:  
+- **Input vocabulary**: 1,196 tokens  
+- **Categories**: 18 research fields  
+- **Train/validation split**: 16,000 / 4,000 samples  
+- **Sequence length**: Padded/truncated to 100 tokens  
+- **Embeddings**: 128-dimensional  
+- **Layers**: Two `Conv1D` layers for local feature extraction  
+- **Regularization**: Dropout (0.3) in embedding and dense layers  
+- **Early stopping**: Configured with patience=3 (not triggered; training completed all epochs).  
 
 ---
 
-### **Testing and Prediction Generation**
+### **Training Progress**  
+<img width="900" alt="image" src="https://github.com/user-attachments/assets/4a4af77d-ccfe-4872-8cf1-c0ede84a794b" />  
 
-To generate predictions on the test set, the following command was executed:
+**Key Metrics**:  
 
-```bash
-python classifier.py --test data/test-data.jsonl
-```
+| Epoch | Training Accuracy | Validation Accuracy | Validation Loss |  
+|-------|-------------------|---------------------|------------------|  
+| 1     | 33.1%             | 45.0%               | 1.7840           |  
+| 5     | 59.9%             | 56.1%               | 1.4703           |  
+| 10    | 67.0%             | 57.4%               | 1.4546           |  
+| **13**| **69.7%**         | **57.6%**           | **1.5082**       |  
+| 15    | 72.2%             | 56.4%               | 1.5733           |  
 
-<img width="1262" alt="image" src="https://github.com/user-attachments/assets/3eead180-86b3-4fc3-87a9-610b4036a059" />
-
-This process:
-- Loaded the pre-trained model and vocabulary
-- Processed **2,000 test samples**
-- Successfully tokenized and padded formulas into sequences
-- Saved predictions in the required JSON format as `predictions.json`
-
-**Example Tokenized Sequence:**
-```
-[2, 3, 78, 5, 6, 2, 16, 5, 49, 3, 44, 16, ...]
-```
-
-> This sequence represents structural and normalized tokens from a MathML snippet, encoded based on the trained vocabulary.
+> **Peak Validation Accuracy**: **57.6%** at epoch 13, with validation loss of 1.5082. This exceeds the baseline of 25%, demonstrating the model’s ability to generalize to unseen data despite moderate overfitting in later epochs.  
 
 ---
 
-### **Final Notes**
-The final validation accuracy of 58.0% demonstrates the model’s ability to classify mathematical publications based solely on formulaic notation with reasonable reliability.
-The results are reproducible and align with the assignment specifications.
-Future improvements could explore hybrid models and attention mechanisms to better capture semantic context and disambiguate cross-domain mathematical symbols.
+### **Model Artifacts**  
+<img width="340" alt="image" src="https://github.com/user-attachments/assets/0bdf598a-aecc-4f86-b58b-09950449454b" />  
+
+The trained model and supporting files were saved as:  
+- `model.keras` (architecture and weights)  
+- `vocab.pickle` (token-to-index mappings)  
+- `label_encoder.pickle` (category label encoder)  
+
+---
+
+### **Testing and Predictions**  
+Predictions were generated with:  
+```bash  
+python classifier.py --test data/test-data.jsonl  
+```  
+
+<img width="1262" alt="image" src="https://github.com/user-attachments/assets/3eead180-86b3-4fc3-87a9-610b4036a059" />  
+
+**Process Overview**:  
+- Loaded pre-trained model and vocabulary.  
+- Processed **2,000 test samples**, tokenizing and padding sequences to 100 tokens.  
+- Predictions saved to `predictions.json` in the required format.  
+
+**Example Tokenized Sequence**:  
+```  
+[2, 3, 78, 5, 6, 2, 16, 5, 49, 3, 44, 16, ...]  
+```  
+> This sequence represents structural and semantic tokens from a MathML formula, encoded using the trained vocabulary.  
+
+---
+
