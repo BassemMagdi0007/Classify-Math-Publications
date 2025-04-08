@@ -131,7 +131,7 @@ The implementation leverages several Python libraries to create an efficient and
 
 ## Code Structure
 
-The implementation follows a modular design with clear separation of concerns:
+### The implementation Skeleton:
 
 1. **Data Preprocessing & Feature Engineering**:
    - `tokenize_mathml()`: Converts MathML formulas to normalized tokens
@@ -149,6 +149,165 @@ The implementation follows a modular design with clear separation of concerns:
 4. **Main Execution**:
    - Command-line interface supporting both training and prediction modes
    - Handles model loading and saving for efficient reuse
+
+### Code:
+
+### **1. Imports and Configuration**
+```python
+import xml.etree.ElementTree as ET
+import re
+import json
+import numpy as np
+import os
+from collections import Counter
+from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import train_test_split
+import pickle
+
+# Keras backend configuration
+os.environ["KERAS_BACKEND"] = "tensorflow"
+import keras
+from keras.callbacks import EarlyStopping
+```
+- **Core Libraries**:  
+  - `xml.etree.ElementTree`: For parsing MathML formulas.  
+  - `re`: Regular expressions for text normalization.  
+  - `json`: Handling JSON-formatted paper data.  
+  - `numpy`: Numerical operations and array management.  
+- **ML Tools**:  
+  - `LabelEncoder`: Converts class labels to numerical indices.  
+  - `train_test_split`: Creates training/validation splits.  
+- **Deep Learning**:  
+  - Keras with TensorFlow backend for model construction and training.  
+
+### **2. Hyperparameters**
+```python
+MAX_SEQ_LENGTH = 100   # Maximum input sequence length  
+MIN_TOKEN_FREQ = 10    # Minimum token frequency for vocabulary  
+EMBEDDING_DIM = 128    # Dimension of embedding vectors  
+BATCH_SIZE = 32        # Training batch size  
+EPOCHS = 15            # Maximum training epochs  
+```
+- **Sequence Handling**: `MAX_SEQ_LENGTH` truncates/pads token sequences.  
+- **Vocabulary Filtering**: `MIN_TOKEN_FREQ` prunes rare tokens to reduce noise.  
+- **Model Architecture**: `EMBEDDING_DIM` defines the dense representation space.  
+
+---
+
+### **3. Data Processing Pipeline**
+#### **`tokenize_mathml(formula)`**
+```python
+def tokenize_mathml(formula):
+    # Parses MathML into normalized tokens (e.g., numbers → `<NUMBER>`).
+    # Handles XML namespaces, mathematical operators, and error cases.
+```
+- **Input**: Raw MathML string.  
+- **Output**: List of normalized tokens (e.g., `['mi', '<NUMBER>', '@variable']`).  
+- **Key Steps**:  
+  1. XML namespace stripping.  
+  2. Number/operator normalization.  
+  3. Attribute handling (e.g., `@class` annotations).  
+
+#### **`build_vocabulary(token_lists)`**
+```python
+def build_vocabulary(token_lists):
+    # Constructs frequency-based vocabulary with rare-token filtering.
+```
+- **Input**: List of tokenized papers.  
+- **Output**: Dictionary mapping tokens to indices (e.g., `{'<PAD>': 0, '<UNK>': 1, ...}`).  
+- **Filtering**: Tokens with frequency < `MIN_TOKEN_FREQ` are mapped to `<UNK>`.  
+
+#### **`load_and_process_data(file_path)`**
+```python
+def load_and_process_data(file_path):
+    # End-to-end pipeline: JSONL → tokenized sequences → train/val splits.
+```
+- **Steps**:  
+  1. Loads JSONL papers and extracts formulas.  
+  2. Tokenizes formulas and builds vocabulary.  
+  3. Converts tokens to padded integer sequences.  
+  4. Splits data into training/validation sets (80/20).  
+
+---
+
+### **4. Model Architecture**
+#### **`create_model(vocab_size, num_categories)`**
+```python
+def create_model(vocab_size, num_categories):
+    # Builds CNN-based classifier with embeddings and dropout.
+```
+- **Layers**:  
+  1. **Embedding**: Maps token indices to dense vectors (`EMBEDDING_DIM=128`).  
+  2. **Convolutional**: Two 1D conv layers (kernel size=5) with ReLU activation.  
+  3. **Pooling**: Max-pooling followed by global pooling.  
+  4. **Dense**: Fully connected layers with dropout (`rate=0.3`).  
+- **Output**: Softmax over paper categories.  
+
+#### **Training Configuration**
+- **Optimizer**: Adam.  
+- **Loss**: Sparse categorical cross-entropy.  
+- **Early Stopping**: Monitors `val_accuracy` with `patience=3`.  
+
+---
+
+### **5. Training & Evaluation**
+#### **`train_and_save_model()`**
+```python
+def train_and_save_model(training_file, model_output_path='model.keras'):
+    # Orchestrates data loading, training, and model persistence.
+```
+- **Saved Artifacts**:  
+  - Trained Keras model (`model.keras`).  
+  - Vocabulary and label encoder (pickle files).  
+  - Class mapping (JSON).  
+- **Validation**: Reports accuracy on held-out data.  
+
+---
+
+### **6. Inference Pipeline**
+#### **`process_test_data()`**
+```python
+def process_test_data(test_file, vocab, label_encoder, model):
+    # Processes test papers and generates predictions.
+```
+- **Steps**:  
+  1. Tokenizes test formulas using the trained vocabulary.  
+  2. Pads/truncates sequences to `MAX_SEQ_LENGTH`.  
+  3. Runs model inference and decodes predictions.  
+
+#### **`get_classifications(request)`**
+```python
+def get_classifications(request):
+    # API-compatible function for real-time predictions.
+```
+- **Input**: List of paper dictionaries (from server requests).  
+- **Output**: Predicted categories.  
+
+---
+
+### **7. Command-Line Interface**
+```python
+def main():
+    # Supports --train (training mode) and --test (inference mode).
+```
+- **Usage**:  
+  ```bash
+  python classifier.py --train papers_train.jsonl --test papers_test.jsonl
+  ```
+- **Output**: Saves predictions to `predictions.json`.  
+
+---
+
+## **Workflow Summary**
+1. **Training Phase**:  
+   - Processes raw JSONL → tokenized sequences → trains CNN classifier.  
+   - Persists model and vocabulary for deployment.  
+2. **Inference Phase**:  
+   - Loads saved artifacts.  
+   - Classifies new papers via `process_test_data()` or `get_classifications()`.  
+
+--- 
+
 
 ## Self-Evaluation and Design Decisions
 
