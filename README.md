@@ -35,7 +35,7 @@ This project implements a neural network-based classifier for mathematical publi
 
 ### Repository Content
 The repository contains the following files:
-- `Example run/`: Folder containing example data run dependencies
+- `Example-run/`: Folder containing example data run dependencies
 - `classifier.py`: Main code file containing the model training and prediction logic
 - `server_interaction.py`: Script for submitting predictions to server (Not Used)
 - `create_training_data.py`: Creates training data by merging test data with ground truth labels <br> <br>
