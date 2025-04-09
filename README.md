@@ -120,19 +120,23 @@ python evaluate.py path/to/example-test-results.json path/to/predictions.json
 ```bash
 python classifier.py --train path/to/training-data.jsonl
 ```
-> This will:
-> 1. Train the neural network model on the training data
-> 3. Save the model, vocabulary, and label encoder to disk
+>  <img width="425" alt="image" src="https://github.com/user-attachments/assets/9b0971ad-b41d-44e0-b2a9-3d795bb03c85" /> <br>
+>  <img width="803" alt="image" src="https://github.com/user-attachments/assets/38dabee7-8afd-450f-b3fe-08b5ea87cc15" />
+
+This will:
+1. Train the neural network model on the training data
+3. Save the model, vocabulary, and label encoder to disk
 
 #### 2) Generating Test Predictions
 ```bash
 python classifier.py --test path/to/test-data.jsonl
 ```
+>  <img width="824" alt="image" src="https://github.com/user-attachments/assets/9d1faa0a-368a-4c2b-9d12-ad14bc4bc9e6" />
 
-> This will:
-> 1. Load the previously trained model and preprocessing objects
-> 2. Process the test data
-> 3. Generate and save the results in JSON format file `predictions.json`
+This will:
+1. Load the previously trained model and preprocessing objects
+2. Process the test data
+3. Generate and save the results in JSON format file `predictions.json`
 
 
 
@@ -325,7 +329,7 @@ def main():
 
 ## Self-Evaluation and Design Decisions
 
-### **Training Phase**  
+### **Training Phase (Example Data)**  
 The model was trained using the command:  
 ```bash  
 python classifier.py --train data/training-data.jsonl  
