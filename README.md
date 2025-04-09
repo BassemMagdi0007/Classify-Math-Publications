@@ -35,26 +35,27 @@ This project implements a neural network-based classifier for mathematical publi
 
 ### Repository Content
 The repository contains the following files:
+- `Example run/`: Folder containing example data run dependencies
 - `classifier.py`: Main code file containing the model training and prediction logic
 - `server_interaction.py`: Script for submitting predictions to server (Not Used)
-- `create_training_data.py`: Creates training data by merging test data with ground truth labels
+- `create_training_data.py`: Creates training data by merging test data with ground truth labels <br> <br>
+**_(Data run dependencies)_** <br>
 - `model.keras`: Trained model
 - `vocab.pickle`: Saved vocabulary for token conversion
-- `label_encoder.pickle`: Saved label encoder 
+- `label_encoder.pickle`: Saved label encoder
 - `predictions.json`: Generated predictions for the test dataset
-- `class_mapping.json`: JSON mapping of class IDs to category names.
+- `class_mapping.json`: JSON mapping of class IDs to category names
 
 ### Dependencies
-
 - Python 3.8+
 - TensorFlow 2.10+
 - Keras 3.0+
 - NumPy
 - scikit-learn
-- pickle (included in Python standard library)
-- json (included in Python standard library)
-- xml.etree.ElementTree (included in Python standard library)
-- re (included in Python standard library)
+- pickle _(included in Python standard library)_
+- json _(included in Python standard library)_
+- xml.etree.ElementTree _(included in Python standard library)_
+- re _(included in Python standard library)_
 
 #### Installation
 
@@ -71,39 +72,43 @@ pip install tensorflow numpy scikit-learn
 ```bash
 python create_training_data.py path/to/example-test-data.jsonl path/to/example-test-results.json --output path/to/training_data.jsonl
 ```
+> Output: `training_data.jsonl`
 - Optionally, specify the `--output` argument to set the output file path. If not provided, it defaults to `training_data.jsonl`.
 
-> This will:
-> 1. Loads test data and ground truth labels.
-> 2. Merges data and labels into training data.
-> 3. Saves training data to `training_data.jsonl` file.
+This will:
+1. Loads data (example-test-data) and ground truth labels (example-test-results).
+2. Merges data and labels into training data.
+3. Saves training data to `training_data.jsonl` file.
 
 #### 2) Training the Model
 ```bash
 python classifier.py --train path/to/training_data.jsonl
 ```
+> Outputs: `model.keras`, `vocab.pickle`, `label_encoder.pickle`
 
-> This will:
-> 1. Load and process the training data
-> 2. Train a neural network model
-> 3. Save the model, vocabulary, and label encoder to disk
+This will:
+1. Load and process the training data
+2. Train a neural network model (Data is splited into training/validation sets (80/20))
+3. Save the model, vocabulary, and label encoder to disk
 
 #### 3) Generating Test Predictions
 
 ```bash
 python classifier.py --test path/to/example-test-data.jsonl
 ```
-
-> This will:
-> 1. Load the previously trained model and preprocessing objects
-> 2. Process the test data
-> 3. Generate and save the results in JSON format file `predictions.json`
+> Output: `predictions.json`
+> 
+This will:
+1. Load the previously trained model and preprocessing objects
+2. Process the test data
+3. Generate and save the results in JSON format file `predictions.json`
 
 #### 4) Evaluate the model 
 ```bash
 python evaluate.py path/to/example-test-results.json path/to/predictions.json
 ```
->  <img width="391" alt="Screenshot 2025-04-06 185719" src="https://github.com/user-attachments/assets/137fd09a-1517-41aa-8049-aead0c9eeb70" />
+>  <img width="366" alt="image" src="https://github.com/user-attachments/assets/3e54343f-c1cc-4ed7-9d11-606fc76373fe" />
+
 
 
 
@@ -205,11 +210,11 @@ from keras.callbacks import EarlyStopping
 
 ### **2. Hyperparameters**
 ```python
-MAX_SEQ_LENGTH = 100   # Maximum input sequence length  
-MIN_TOKEN_FREQ = 10    # Minimum token frequency for vocabulary  
-EMBEDDING_DIM = 128    # Dimension of embedding vectors  
-BATCH_SIZE = 32        # Training batch size  
-EPOCHS = 15            # Maximum training epochs  
+MAX_SEQ_LENGTH = 200  # Maximum length of input sequences
+MIN_TOKEN_FREQ = 50   # Minimum frequency threshold for vocabulary inclusion
+EMBEDDING_DIM = 256   # Dimension of embedding vectors
+BATCH_SIZE = 64       # Number of samples per gradient update
+EPOCHS = 20           # Maximum number of training epochs
 ```
 - **Sequence Handling**: `MAX_SEQ_LENGTH` truncates/pads token sequences.  
 - **Vocabulary Filtering**: `MIN_TOKEN_FREQ` prunes rare tokens to reduce noise.  
@@ -313,10 +318,6 @@ def get_classifications(request):
 def main():
     # Supports --train (training mode) and --test (inference mode).
 ```
-- **Usage**:  
-  ```bash
-  python classifier.py --train papers_train.jsonl --test papers_test.jsonl
-  ```
 - **Output**: Saves predictions to `predictions.json`.  
 
 --- 
@@ -329,45 +330,48 @@ The model was trained using the command:
 ```bash  
 python classifier.py --train data/training-data.jsonl  
 ```  
-
-<img width="709" alt="image" src="https://github.com/user-attachments/assets/3ddf12cf-37d3-4900-aacf-81a4de76a08f" />  
+> <img width="470" alt="image" src="https://github.com/user-attachments/assets/da41d4af-5b2a-41c5-9f06-46e190b2fc2e" />
 
 **Dataset Overview**:  
-- **20,000 papers** with **7.6 million tokens** total.  
-- After filtering rare tokens (minimum frequency=10), the vocabulary reduced from **6,407 to 1,196 unique tokens**, achieving **99.85% coverage**.  
-- Uncovered tokens (e.g., `'mu'`, `'caf'`, `'𝗸𝗽𝗰'`) were mapped to `<UNK>`.  
+- **20,000 papers** with **759,837** total tokens.  
+- After filtering rare tokens, the vocabulary reduced from **1,559 to 175 unique tokens**, achieving **98.99% coverage**.  
+- Uncovered tokens (e.g., `'svg'`, `'tet'`, `'υ'`, `'when'`, `'on'`) were mapped to `<UNK>`.  
 
 **Model Architecture**:  
-- **Input vocabulary**: 1,196 tokens  
+- **Input vocabulary**: 175 tokens  
 - **Categories**: 18 research fields  
 - **Train/validation split**: 16,000 / 4,000 samples  
 - **Sequence length**: Padded/truncated to 100 tokens  
 - **Embeddings**: 128-dimensional  
 - **Layers**: Two `Conv1D` layers for local feature extraction  
 - **Regularization**: Dropout (0.3) in embedding and dense layers  
-- **Early stopping**: Configured with patience=3 (not triggered; training completed all epochs).  
+- **Early stopping**: Configured with `patience=3` (But not triggered; training completed all epochs "Design Decision").  
 
 ---
 
 ### **Training Progress**  
-<img width="900" alt="image" src="https://github.com/user-attachments/assets/4a4af77d-ccfe-4872-8cf1-c0ede84a794b" />  
+<img width="766" alt="image" src="https://github.com/user-attachments/assets/118188aa-d3ca-49fc-999e-4c4138099119" />
+ 
 
 **Key Metrics**:  
 
-| Epoch | Training Accuracy | Validation Accuracy | Validation Loss |  
-|-------|-------------------|---------------------|------------------|  
-| 1     | 33.1%             | 45.0%               | 1.7840           |  
-| 5     | 59.9%             | 56.1%               | 1.4703           |  
-| 10    | 67.0%             | 57.4%               | 1.4546           |  
-| **13**| **69.7%**         | **57.6%**           | **1.5082**       |  
-| 15    | 72.2%             | 56.4%               | 1.5733           |  
+| Epoch | Training Accuracy | Validation Accuracy | Validation Loss |
+|-------|-------------------|---------------------|------------------|
+| 1     | 21.2%             | 30.5%               | 2.2061           |
+| 5     | 35.2%             | 40.5%               | 1.9501           |
+| 10    | 49.8%             | 46.0%               | 1.7681           |
+| 15    | 61.9%             | 48.3%               | 1.7208           |
+| **16**| **62.6%**         | **51.3%**           | **1.7242**       |
+| 17    | 68.9%             | 50.0%               | 1.7001           |
+| 19    | 74.1%             | 49.8%               | 1.7892           |
 
-> **Peak Validation Accuracy**: **57.6%** at epoch 13, with validation loss of 1.5082. This exceeds the baseline of 25%, demonstrating the model’s ability to generalize to unseen data despite moderate overfitting in later epochs.  
+> **Peak Validation Accuracy**: **51.3%** at **epoch 16**, with validation loss of **1.7242**.  
+> This significantly surpasses the random baseline of ~5.6% (for 18 categories), demonstrating meaningful learning. However, **validation loss plateaued** and even slightly increased afterwards, suggesting mild **overfitting** in later epochs.
 
 ---
 
 ### **Model Artifacts**  
-<img width="340" alt="image" src="https://github.com/user-attachments/assets/0bdf598a-aecc-4f86-b58b-09950449454b" />  
+<img width="314" alt="image" src="https://github.com/user-attachments/assets/ffd9f54c-248a-45b4-a700-af654dcd4d48" />
 
 The trained model and supporting files were saved as:  
 - `model.keras` (architecture and weights)  
@@ -382,8 +386,8 @@ Predictions were generated with:
 python classifier.py --test data/test-data.jsonl  
 ```  
 
-<img width="1262" alt="image" src="https://github.com/user-attachments/assets/3eead180-86b3-4fc3-87a9-610b4036a059" />  
-
+<img width="665" alt="image" src="https://github.com/user-attachments/assets/6eb43b00-b43d-4ef5-88dc-139f9610afee" />
+ 
 **Process Overview**:  
 - Loaded pre-trained model and vocabulary.  
 - Processed **2,000 test samples**, tokenizing and padding sequences to 100 tokens.  
@@ -391,9 +395,12 @@ python classifier.py --test data/test-data.jsonl
 
 **Example Tokenized Sequence**:  
 ```  
-[2, 3, 78, 5, 6, 2, 16, 5, 49, 3, 44, 16, ...]  
+[2, 3, 4, 5, 3, 6, 7, 8, 3, 9, ...]  
 ```  
-> This sequence represents structural and semantic tokens from a MathML formula, encoded using the trained vocabulary.  
+> This sequence represents structural and semantic tokens from a MathML formula, encoded using the trained vocabulary.
+
+### **Example Data Evaluation**  
+<img width="368" alt="image" src="https://github.com/user-attachments/assets/ff9601bd-a4cd-4a18-ac31-491583526936" />
 
 ---
 
