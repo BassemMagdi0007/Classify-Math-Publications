@@ -64,29 +64,29 @@ pip install tensorflow numpy scikit-learn
 
 ### How to Run the Code
 ### **FIRST: Example Files:**
+- Replace `path/to/example-test-data.jsonl` with the path to your example test data file.
+- Replace `path/to/example-test-results.json` with the path to your example test results file.
 
 #### 1) Create training data
 ```bash
 python create_training_data.py path/to/example-test-data.jsonl path/to/example-test-results.json --output path/to/training_data.jsonl
 ```
-- Replace `path/to/example-test-data.jsonl` with the path to your test data file.
-- Replace `path/to/example-test-results.json` with the path to your test results file.
 - Optionally, specify the `--output` argument to set the output file path. If not provided, it defaults to `training_data.jsonl`.
 
-This will:
-1. Loads test data and ground truth labels.
-2. Merges data and labels into training data.
-3. Saves training data to `training_data.jsonl` file.
+> This will:
+> 1. Loads test data and ground truth labels.
+> 2. Merges data and labels into training data.
+> 3. Saves training data to `training_data.jsonl` file.
 
 #### 2) Training the Model
 ```bash
 python classifier.py --train path/to/training_data.jsonl
 ```
 
-This will:
-1. Load and process the training data
-2. Train a neural network model
-3. Save the model, vocabulary, and label encoder to disk
+> This will:
+> 1. Load and process the training data
+> 2. Train a neural network model
+> 3. Save the model, vocabulary, and label encoder to disk
 
 #### 3) Generating Test Predictions
 
@@ -94,34 +94,40 @@ This will:
 python classifier.py --test path/to/example-test-data.jsonl
 ```
 
-This will:
-1. Load the previously trained model and preprocessing objects
-2. Process the test data
-3. Generate and save the results in JSON format file `predictions.json`
+> This will:
+> 1. Load the previously trained model and preprocessing objects
+> 2. Process the test data
+> 3. Generate and save the results in JSON format file `predictions.json`
 
 #### 4) Evaluate the model 
 ```bash
 python evaluate.py path/to/example-test-results.json path/to/predictions.json
 ```
+>  <img width="391" alt="Screenshot 2025-04-06 185719" src="https://github.com/user-attachments/assets/137fd09a-1517-41aa-8049-aead0c9eeb70" />
+
+
 
 ### **THEN: Data Files:**
+- Replace `path/to/training-data` with the path to your training data file.
+- Replace `path/to/test-data.jsonl` with the path to your test data file.
+  
 #### 1) Training the Model
 ```bash
 python classifier.py --train path/to/training-data.jsonl
 ```
-This will:
-1. Train the neural network model on the training data
-3. Save the model, vocabulary, and label encoder to disk
+> This will:
+> 1. Train the neural network model on the training data
+> 3. Save the model, vocabulary, and label encoder to disk
 
 #### 2) Generating Test Predictions
 ```bash
 python classifier.py --test path/to/test-data.jsonl
 ```
 
-This will:
-1. Load the previously trained model and preprocessing objects
-2. Process the test data
-3. Generate and save the results in JSON format file `predictions.json`
+> This will:
+> 1. Load the previously trained model and preprocessing objects
+> 2. Process the test data
+> 3. Generate and save the results in JSON format file `predictions.json`
 
 
 
