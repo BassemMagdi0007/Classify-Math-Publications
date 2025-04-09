@@ -28,8 +28,6 @@ This project implements a neural network-based classifier for mathematical publi
 
 - **Comprehensive Training Pipeline**: Includes data loading, preprocessing, model training with early stopping, and evaluation components in a reproducible workflow.
 
-- **Production-Ready Deployment**: Provides functions for both batch processing of test files and API-style individual paper classification.
-
 - **Model Persistence**: Saves trained models and preprocessing artifacts (vocabulary, label encoders) for later reuse without retraining.
 
 
@@ -38,13 +36,13 @@ This project implements a neural network-based classifier for mathematical publi
 ### Repository Content
 The repository contains the following files:
 - `classifier.py`: Main code file containing the model training and prediction logic
-- `server_interaction.py`: Script provided by the assignment for submitting predictions
+- `server_interaction.py`: Script for submitting predictions to server (Not Used)
+- `create_training_data.py`: Creates training data by merging test data with ground truth labels
 - `model.keras`: Trained model
 - `vocab.pickle`: Saved vocabulary for token conversion
 - `label_encoder.pickle`: Saved label encoder 
-- `test_results.json`: Generated predictions for the test dataset
-- `solution_summary.md`: Summary of the solution approach
-- `README.md`: This file
+- `predictions.json`: Generated predictions for the test dataset
+- `class_mapping.json`: JSON mapping of class IDs to category names.
 
 ### Dependencies
 
@@ -392,4 +390,12 @@ python classifier.py --test data/test-data.jsonl
 > This sequence represents structural and semantic tokens from a MathML formula, encoded using the trained vocabulary.  
 
 ---
+
+## Output Format
+ 
+ The results are stored as a JSON object, where the keys are the " Papers id"s and the values
+ are the predicted classifications
+ 
+<img width="228" alt="image" src="https://github.com/user-attachments/assets/b4771590-94f2-4711-8211-782de24f7036" />
+
 
