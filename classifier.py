@@ -15,11 +15,11 @@ import keras
 from keras.callbacks import EarlyStopping
 #-------------------------------------------------------------------------------------------
 # Model hyperparameters and configuration settings
-MAX_SEQ_LENGTH = 100  # Maximum length of input sequences
-MIN_TOKEN_FREQ = 10   # Minimum frequency threshold for vocabulary inclusion
-EMBEDDING_DIM = 128   # Dimension of embedding vectors
-BATCH_SIZE = 32       # Number of samples per gradient update
-EPOCHS = 15           # Maximum number of training epochs
+MAX_SEQ_LENGTH = 200  # Maximum length of input sequences
+MIN_TOKEN_FREQ = 50   # Minimum frequency threshold for vocabulary inclusion
+EMBEDDING_DIM = 256   # Dimension of embedding vectors
+BATCH_SIZE = 64       # Number of samples per gradient update
+EPOCHS = 20           # Maximum number of training epochs
 #-------------------------------------------------------------------------------------------
 """1. Data Preprocessing & Feature Engineering"""
 #-------------------------------------------------
@@ -188,33 +188,27 @@ def load_and_process_data(file_path):
 #----------------------------------
 
 def create_model(vocab_size, num_categories):
-    """
-    Construct neural network architecture for mathematical paper classification.
-    Uses embedding, convolutional layers, and dense layers with dropout for regularization.
-    """
     model = keras.models.Sequential([
         keras.layers.Input(shape=(MAX_SEQ_LENGTH,)),
         keras.layers.Embedding(
             input_dim=vocab_size,
             output_dim=EMBEDDING_DIM,
-            mask_zero=True  # Ignore padding tokens
+            mask_zero=True
         ),
-        keras.layers.Dropout(0.3),
-        keras.layers.Conv1D(64, 5, activation='relu'),
+        keras.layers.Dropout(0.5),  # Increased regularization
+        keras.layers.Conv1D(128, 5, activation='relu'),  # More filters
         keras.layers.MaxPooling1D(2),
-        keras.layers.Conv1D(64, 5, activation='relu'),
+        keras.layers.Conv1D(128, 5, activation='relu'),  # More filters
         keras.layers.GlobalMaxPooling1D(),
-        keras.layers.Dense(128, activation='relu'),
-        keras.layers.Dropout(0.3),
+        keras.layers.Dense(256, activation='relu'),  # Larger dense layer
+        keras.layers.Dropout(0.5),  # Increased regularization
         keras.layers.Dense(num_categories, activation='softmax')
     ])
-    
     model.compile(
         optimizer='adam',
         loss='sparse_categorical_crossentropy',
         metrics=['accuracy']
     )
-    
     return model
 
 def train_and_save_model(training_file, model_output_path='model.keras', 
